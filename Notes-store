@@ -1,0 +1,59 @@
+'use strict';
+
+const fs = require('fs');
+
+process.stdin.resume();
+process.stdin.setEncoding('utf-8');
+
+let inputString = '';
+let currentLine = 0;
+
+process.stdin.on('data', function(inputStdin) {
+  inputString += inputStdin;
+});
+
+process.stdin.on('end', function() {
+  inputString = inputString.split('\n');
+  main();
+});
+
+function readLine() {
+  return inputString[currentLine++];
+}
+
+let completedNotes =[];
+let activeNotes =[];
+let otherNotes =[];
+class NotesStore {
+    //add your code here
+    addNote(state,name){
+        if(name=='' || name==null || name == undefined){
+            throw new Error('Name cannot be empty');
+        }
+        if(!this.isValid(state)){
+            throw new Error('Invalid state '+ state);
+        }
+        this.getNotesList(state).push(name);
+    }
+    
+    getNotes(state) {
+        if (!this.isValid(state)) {
+            throw new Error('Invalid state ' + state);
+        }
+        return this.getNotesList(state);
+    }
+
+    getNotesList(state) {
+        if (state === 'completed') {
+            return completedNotes;
+        } else if (state === 'active') {
+            return activeNotes;
+        }
+        return otherNotes;
+    }
+
+    isValid(state){
+        return state =='completed'||state=='active'||state =='others'
+    }
+}
+function main() {
