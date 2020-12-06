@@ -1,0 +1,89 @@
+'use strict';
+
+const fs = require('fs');
+const https = require('https');
+
+process.stdin.resume();
+process.stdin.setEncoding('utf-8');
+
+let inputString = '';
+let currentLine = 0;
+
+process.stdin.on('data', function(inputStdin) {
+    inputString += inputStdin;
+});
+
+process.stdin.on('end', function() {
+    inputString = inputString.split('\n');
+
+    main();
+});
+
+function readLine() {
+    return inputString[currentLine++];
+}
+
+function fetchData(url) {
+    return new Promise((resolve, reject) => {
+        https
+            .get(url, (res) => {
+                let result = "";
+                res.on("data", (chunk) => {
+                    result += chunk;
+                });
+                res.on("end", () => {
+                    resolve(JSON.parse(result));
+                });
+            })
+            .on("error", (error) => {
+                reject(error);
+            });
+    });
+}
+async function getTeams(year, k) {
+    // write your code here
+    // API endpoint template: https://jsonmock.hackerrank.com/api/football_matches?competition=UEFA%20Champions%20League&year=<YEAR>&page=<PAGE_NUMBER>
+    console.log('year', year);
+     console.log('k', k);
+     let url = `https://jsonmock.hackerrank.com/api/football_matches?competition=UEFA%20Champions%20League&year=${year}&page=${k}`;
+     console.log('url', url);
+     const { total_pages,data }= await fetchData(url);
+     for(var i =1;i<total_pages;i++){
+        const {data} = await fetchData(`https://jsonmock.hackerrank.com/api/football_matches?competition=UEFA%20Champions%20League&year=${year}&page=${i}`);
+        const teams = findTeams(data, k);
+     }
+}
+function findTeams(arr, k) {
+     let visited = -1;  
+        let fr=[];
+        console.log(arr)
+        for(let i = 0; i < arr.length; i++){  
+            let count = 1;  
+            for(let j = i+1; j < arr.length; j++){  
+                console.log('arr[i].team1',arr[i].team1);
+                if(arr[i].team1 == arr[j].team1){  
+                    count++;  
+                    //To avoid counting same element again  
+                    fr[j] = visited;  
+                }  
+            }  
+            if(fr[i] != visited)  
+                fr[i] = count;  
+        }  
+  console.log('fr',fr);
+    // const count = array.reduce((acc, cur) => cur.id === id ? ++acc : acc, 0);
+}
+
+
+async function main() {
+  const ws = fs.createWriteStream(process.env.OUTPUT_PATH);
+
+  const year = parseInt(readLine().trim());
+  const k = parseInt(readLine().trim());
+
+  const teams = await getTeams(year, k);
+
+  for (const team of teams) {
+    ws.write(`${team}\n`);
+  }
+}
